@@ -9,12 +9,12 @@ def initial_function(x): #initial distribution
     #x /= 2.8e-4
     return 4.*x*np.exp(-2.*x)
 
-B  = 5e-3
+B  = 5e-4
 s  = -0.3
 dt = 1.
-k  = 1
+k  = 5
 
-def x_growth_function(x):
+def x_growth_function(x,N,M):
     return x+B*s*(M/N)**(1/3)*dt*(x/(M/N))**(1/3)
 
 def M_growth_function(N,M):
@@ -23,11 +23,11 @@ def M_growth_function(N,M):
 num_of_bin = 30 #number of bins
 xmax = 10
 
-power = 1.02
+power = 2.0
 #x1arr = np.linspace(0,xmax,num_of_bin+1)[:-1]
-x1arr = power**(np.arange(0,num_of_bin)[:-1])
+x1arr = (power**(np.arange(0,num_of_bin)[:-1]-12))/power**(13)
 #x2arr = np.linspace(0,xmax,num_of_bin+1)[1:]
-x2arr = power**(np.arange(0,num_of_bin)[1:])
+x2arr = (power**(np.arange(0,num_of_bin)[1:]-12))/power**(13)
 dxarr = np.zeros(num_of_bin)
 dNarr = np.zeros(num_of_bin)
 dMarr = np.zeros(num_of_bin)
@@ -38,7 +38,7 @@ for i,x1,x2 in zip(range(num_of_bin),x1arr,x2arr):
     Bin = BN(initial_function,x1,x2)
     Bindic[i] = Bin
 
-for t in range(1):
+for t in range(100):
 
     N = np.zeros(num_of_bin)
 
@@ -67,7 +67,7 @@ for t in range(1):
 
         #print("\tn1=%4.3f, n2=%4.3f\n" %(n1,n2))
 
-        """
+        #"""
         dx,dN,dM = bin1.Bin_Shift(x_growth_function,M_growth_function)
         dxarr[i] = dx
         dNarr[i] = dN
@@ -84,11 +84,11 @@ for t in range(1):
         plt.figure(figsize=(11.5,8))
         plt.title("Pre-test of fitting $sin(x)+1$",fontsize=20)
         plt.title("t="+str(t),loc='right',fontsize=14)
-        plt.plot(N,'-b')
+        plt.plot(N,'o-b')
         plt.ylabel("$n(x)$",fontsize=16)
         plt.xlabel("X",fontsize=16)
         plt.xlim(0,num_of_bin)
-        #plt.ylim(0,1)
+        plt.ylim(0,0.35)
         plt.savefig("./pic/"+str(t)+".png",dpi=100)
         plt.show()
         plt.clf()

@@ -54,9 +54,9 @@ class Bin_Node:
 
     def Bin_Shift(self,x_growth_function,M_growth_function):
         # Assume x1 and x2 will grouth same direction
-        x1_n = x_growth_function(self.x1)
-        x0_n = x_growth_function(self.x0)
-        x2_n = x_growth_function(self.x2)
+        x1_n = x_growth_function(self.x1,self.N,self.M)
+        x0_n = x_growth_function(self.x0,self.N,self.M)
+        x2_n = x_growth_function(self.x2,self.N,self.M)
         delx = x1_n-self.x1
         self.M = M_growth_function(self.N,self.M)
 

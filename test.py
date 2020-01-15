@@ -10,7 +10,7 @@ def initial_function(x): #initial distribution
 
 
 xmin = 0
-xmax = 10
+xmax = 2
 
 plt.plot(np.linspace(xmin,xmax,1000),initial_function(np.linspace(xmin,xmax,1000)),'--k',linewidth=5)
 plt.show()
