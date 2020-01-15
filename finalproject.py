@@ -72,4 +72,5 @@ for i in range(num_of_bin):
         n1 = karr[i]*(x1arr[i]-x_stararr[i])
         n2 = karr[i]*(x2arr[i]-x_stararr[i])
     plt.plot([x1arr[i],x2arr[i]],[n1,n2],'-b')
+    plt.vlines(x1)
 plt.show()
