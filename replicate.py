@@ -11,12 +11,14 @@ def initial_function(x): #initial distribution
     #return x+1
 
 B  = 5e-3
-s  = -0.3
+s  = 0.3
 dt = 1.
 
 print_lapse  = 10
-iteration    = 1000
+iteration    = 100
 
+num_of_bin = 30 #number of bins
+xmax = 10
 
 def x_growth_function(x,N,M):
     if(N==0 or M==0):
@@ -30,15 +32,14 @@ def M_growth_function(N,M):
     return M+N*B*s*(M/N)**(1/3)*dt
     #return M+N*0.5
 
-num_of_bin = 30 #number of bins
-xmax = 10
+
 
 
 power = 2.0
 #x1arr = np.linspace(0,xmax,num_of_bin+1)[:-1]
-x1arr = (power**(np.arange(0,num_of_bin)[:-1]-12))/power**(13)/1.47
+x1arr = (power**(np.arange(0,num_of_bin+1)[:-1]-12))/power**(13)/1.47
 #x2arr = np.linspace(0,xmax,num_of_bin+1)[1:]
-x2arr = (power**(np.arange(0,num_of_bin)[1:]-12))/power**(13)/1.47
+x2arr = (power**(np.arange(0,num_of_bin+1)[1:]-12))/power**(13)/1.47
 dxarr = np.zeros(num_of_bin)
 dNarr = np.zeros(num_of_bin)
 dMarr = np.zeros(num_of_bin)
@@ -97,7 +98,7 @@ for t in range(iteration):
     if(t%print_lapse == 0):
         if(not t):
             N_init = np.array(N)
-            print(N_init)
+            #print(N_init)
         plt.title("Pre-test of fitting $Gamma Function$",fontsize=20)
         plt.title("t="+str(t),loc='right',fontsize=14)
         plt.plot(N,'o-b',label="dt = 1 s")
