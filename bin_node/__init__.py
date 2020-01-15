@@ -3,17 +3,17 @@ import scipy.integrate as integrate
 class Bin_Node:
     # INDF Initial Number Density Function
     def __init__(self,INDF,x1,x2):
-        self.INDF = INDF
-        self.x1   = x1
-        self.x2   = x2
-        self.N    = integrate.quad(self.INDF,         self.x1, self.x2)[0]
-        self.M    = integrate.quad(self.First_Moment, self.x1, self.x2)[0]
+        self.INDF   = INDF
+        self.lbound = x1
+        self.rbound = x2
+        self.N      = integrate.quad(self.INDF,         self.lbound, self.rbound)[0]
+        self.M      = integrate.quad(self.First_Moment, self.lbound, self.rbound)[0]
         self.state_compute(x1,x2)
 
     def state_compute(self,x1,x2):
         delx = (x2-x1)
-        self.xs    = x1
-        self.xe    = x2
+        self.x1    = x1
+        self.x2    = x2
         self.x0    = (x1+x2)/2.
         self.n0    = self.N/delx
         self.k     = 12.*(self.M-self.x0*self.N)/delx**3
@@ -48,46 +48,70 @@ class Bin_Node:
         return (b-a)*(n0-k*(x0-(a+b)/2.0))
     # bin shift Mass
     def del_M_function(self,n0,x0,k,a,b):
-        a_b2 = (a**2-b**2)/2.0
-        a_b3 = (a**3-b**3)/3.0
-        return n0*a_b2+k*(a_b3-x0*a_b2)
+        b_a2 = (b**2-a**2)/2.0
+        b_a3 = (b**3-a**3)/3.0
+        return n0*b_a2+k*(b_a3-x0*b_a2)
 
     def Bin_Shift(self,x_growth_function,M_growth_function):
         # Assume x1 and x2 will grouth same direction
-        x1_n = x_growth_function(self.x1,self.N,self.M)
+        self.x1 = x_growth_function(self.lbound,self.N,self.M)
+        self.x2 = x_growth_function(self.rbound,self.N,self.M)
         x0_n = x_growth_function(self.x0,self.N,self.M)
-        x2_n = x_growth_function(self.x2,self.N,self.M)
-        delx = x1_n-self.x1
+        delx = self.x1-self.lbound
         self.M = M_growth_function(self.N,self.M)
+        #print("State %d N=%8.10f M=%8.10f" %(self.NDF_state,self.N,self.M))
+        #print("After Shift delx=%8.10f, x1=%8.10f,x2=%8.10f" %(delx,self.x1,self.x2))
 
-        self.state_compute(x1_n,x2_n)
+        self.state_compute(self.x1,self.x2)
+
+        #print("x1=%8.10f x2=%8.10f x0=%8.10f n0=%8.10f k=%8.10f" %(self.x1,self.x2,self.x0,self.n0,self.k))
+
         self.NDF()
+
+        #print("State %d" %(self.NDF_state))
+        #print("After Shift delx=%8.10f, x1=%8.10f,x2=%8.10f" %(delx,self.x1,self.x2))
+
 
         if(delx>0):
             if(self.NDF_state==1):
-                a = self.x2
-                if(self.x0<=self.x2):
-                    b = self.x2
+                a = self.rbound
+                if(self.x0<=self.rbound):
+                    b = self.rbound
                 else:
                     b = self.x0
             else:
-                a = self.x2
-                b = x2_n
+                a = self.rbound
+                b = self.x2
         else:
             if(self.NDF_state==2):
                 a = self.x0
-                if(self.x0>=self.x1):
+                if(self.x0>=self.lbound):
                     b = self.x0
                 else:
-                    b = self.x1
+                    b = self.lbound
             else:
-                a = x1_n
-                b = self.x1
+                a = self.x1
+                b = self.lbound
 
+        #print("Before del M N n0=%8.10f x0=%8.10f k=%8.10f a=%8.10f b=%8.10f" %(self.n0,self.x0,self.k,a,b))
         delN = self.del_N_function(self.n0,self.x0,self.k,a,b)
         delM = self.del_M_function(self.n0,self.x0,self.k,a,b)
 
-        self.N -= delN
-        self.M -= delM
+        #print("In the bin before modify\n\tN=%8.10f,M=%8.10f,dN=%8.10f,dM=%8.10f" %(self.N,self.M,delN,delM))
+
+        # numerical fixed
+        if self.N-delN < 0:
+            delN = self.N
+            self.N = 0.
+        else:
+            self.N -= delN
+        if self.M-delM < 0:
+            delM = self.M
+            self.M = 0.
+        else:
+            self.M -= delM
+
+        #print("In the bin after modify\n\tN=%8.10f,M=%8.10f,dN=%8.10f,dM=%8.10f" %(self.N,self.M,delN,delM))
+        #print("")
 
         return delx,delN,delM
