@@ -1,15 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from bin_node import Bin_Node as BN
+import scipy.integrate as integrate
 
 normal_constant = 2.8e-4
 
-B  = 5e-3
+B  = 4.15e-6
 s  = -0.3
-dt = 1.
+dt = 1
 
-print_lapse  = 10
-iteration    = 100
+print_lapse  = 100
+iteration    = 5001
 
 num_of_bin = 30 #number of bins
 xmax = 10
@@ -49,6 +50,8 @@ dNarr = np.zeros(num_of_bin)
 dMarr = np.zeros(num_of_bin)
 Bindic = {}
 
+Nanalytical = np.zeros(num_of_bin)
+
 
 for i,x1,x2 in zip(range(num_of_bin),x1arr,x2arr):
     Bin = BN(initial_function,x1,x2)
@@ -58,7 +61,7 @@ plt.figure(figsize=(11.5,8))
 for t in range(iteration):
 
     N = np.zeros(num_of_bin)
-
+    
     #plt.figure(figsize=(11.5,8))
 
     for i,x1,x2 in zip(range(num_of_bin),x1arr,x2arr):
@@ -100,6 +103,13 @@ for t in range(iteration):
         Bindic[i] = bin1
     
     if(t%print_lapse == 0):
+        def analytical_sol(x):
+            
+            xt = (x**(2./3.)-2./3.*B*s*t*dt)**(3./2.)
+            xt /= normal_constant
+            return (x**(-1./3.)*(x**(2./3.)-(2./3.)*B*s*t*dt)**(1./2.))*4.*xt*np.exp(-2.*xt)
+        for j in range(num_of_bin):
+            Nanalytical[j] = integrate.quad(analytical_sol,x1arr[j], x2arr[j])[0]
         if(not t):
             N_init = np.array(N)
             #print(N_init)
@@ -107,6 +117,7 @@ for t in range(iteration):
         plt.title("t="+str(t),loc='right',fontsize=14)
         plt.plot(N/normal_constant,'o-b',label="dt = 1 s")
         plt.plot(N_init/normal_constant,'o-k',label="Initial")
+        plt.plot(Nanalytical/normal_constant,'+--r',label="analytical")
         plt.ylabel("NORMALIZED NUMBER IN THE BIN",fontsize=16)
         plt.xlabel("BIN NUMBER",fontsize=16)
         plt.yticks(np.arange(0,0.41,0.05),["0","","0.1","","0.2","","0.3","","0.4"])

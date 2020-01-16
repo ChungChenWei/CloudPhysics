@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from bin_node import Bin_Node as BN
+import scipy.integrate as integrate
 
 def initial_function(x): #initial distribution
     #return -3.*x+2.5
@@ -10,12 +11,14 @@ def initial_function(x): #initial distribution
     return 4.*x*np.exp(-2.*x)
     #return x+1
 
-B  = 5e-3
+
+
+B  = 1e-3
 s  = -0.3
 dt = 1.
 
-print_lapse  = 10
-iteration    = 1000
+print_lapse  = 50
+iteration    = 5000
 
 
 def x_growth_function(x,N,M):
@@ -44,6 +47,7 @@ dNarr = np.zeros(num_of_bin)
 dMarr = np.zeros(num_of_bin)
 Bindic = {}
 
+Nanalytical = np.zeros(num_of_bin)
 
 for i,x1,x2 in zip(range(num_of_bin),x1arr,x2arr):
     Bin = BN(initial_function,x1,x2)
@@ -95,6 +99,10 @@ for t in range(iteration):
         Bindic[i] = bin1
     
     if(t%print_lapse == 0):
+        def analytical_sol(x):
+            return (x**(2/3)-2/3*B*s*t)**(3/2)
+        for j in range(num_of_bin):
+            Nanalytical[j] = integrate.quad(analytical_sol,x1arr[j], x2arr[j])[0]
         if(not t):
             N_init = np.array(N)
             print(N_init)
@@ -102,6 +110,7 @@ for t in range(iteration):
         plt.title("t="+str(t),loc='right',fontsize=14)
         plt.plot(N,'o-b',label="dt = 1 s")
         plt.plot(N_init,'o-k',label="Initial")
+        plt.plot(Nanalytical,'+--r',label="analytical")
         plt.ylabel("NORMALIZED NUMBER IN THE BIN",fontsize=16)
         plt.xlabel("BIN NUMBER",fontsize=16)
         plt.yticks(np.arange(0,0.41,0.05),["0","","0.1","","0.2","","0.3","","0.4"])
