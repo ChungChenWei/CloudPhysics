@@ -5,16 +5,17 @@ import scipy.integrate as integrate
 
 normal_constant = 2.8e-4
 
+
+# dx/dt = Bs(x)^(1/3)
 B  = 4.15e-6
 s  = -0.3
 dt = 1
 
-print_lapse  = 100
-iteration    = 5001
+print_lapse  = 1
+iteration    = 1
 
 num_of_bin = 30 #number of bins
 xmax = 10
-
 
 def initial_function(x): #initial distribution
     #return -3.*x+2.5
@@ -24,6 +25,10 @@ def initial_function(x): #initial distribution
     return 4.*x*np.exp(-2.*x)
     #return x+1
 
+def analytical_sol(x):
+    xt = (x**(2./3.)-2./3.*B*s*t*dt)**(3./2.)
+    xt /= normal_constant
+    return (x**(-1./3.)*(x**(2./3.)-(2./3.)*B*s*t*dt)**(1./2.))*4.*xt*np.exp(-2.*xt)
 
 def x_growth_function(x,N,M):
     if(N==0 or M==0):
@@ -38,33 +43,37 @@ def M_growth_function(N,M):
     #return M+N*0.5
 
 
-
-
 power = 2.0
-#x1arr = np.linspace(0,xmax,num_of_bin+1)[:-1]
-x1arr = (power**(np.arange(0,num_of_bin+1)[:-1]-25))*normal_constant/1.47
-#x2arr = np.linspace(0,xmax,num_of_bin+1)[1:]
-x2arr = (power**(np.arange(0,num_of_bin+1)[1:]-25))*normal_constant/1.47
+""" Equal interval
+x1arr = np.linspace(0,xmax,num_of_bin+1)[:-1]
+x2arr = np.linspace(0,xmax,num_of_bin+1)[1:]
+#"""
+#""" Logarithmic interval
+test = 29.5 - 4
+x1arr = (power**(np.arange(0,num_of_bin+1)[:-1]-test))*normal_constant
+x2arr = (power**(np.arange(0,num_of_bin+1)[1:]-test))*normal_constant
+#"""
+
+# The array that store information in each shift
 dxarr = np.zeros(num_of_bin)
 dNarr = np.zeros(num_of_bin)
 dMarr = np.zeros(num_of_bin)
+
+
+# The Dictionary that control each bin
 Bindic = {}
-
-Nanalytical = np.zeros(num_of_bin)
-
-
 for i,x1,x2 in zip(range(num_of_bin),x1arr,x2arr):
     Bin = BN(initial_function,x1,x2)
     Bindic[i] = Bin
 
 plt.figure(figsize=(11.5,8))
 for t in range(iteration):
-
+    # The array of analytical solution
+    Nanalytical = np.zeros(num_of_bin)
+    # The array of each bin total Number
     N = np.zeros(num_of_bin)
-    
-    #plt.figure(figsize=(11.5,8))
 
-    for i,x1,x2 in zip(range(num_of_bin),x1arr,x2arr):
+    for i in range(num_of_bin):
         #print(i)
         bin1 = Bindic[i]
         bin1.state_compute(bin1.lbound,bin1.rbound)
@@ -103,16 +112,11 @@ for t in range(iteration):
         Bindic[i] = bin1
     
     if(t%print_lapse == 0):
-        def analytical_sol(x):
-            
-            xt = (x**(2./3.)-2./3.*B*s*t*dt)**(3./2.)
-            xt /= normal_constant
-            return (x**(-1./3.)*(x**(2./3.)-(2./3.)*B*s*t*dt)**(1./2.))*4.*xt*np.exp(-2.*xt)
         for j in range(num_of_bin):
             Nanalytical[j] = integrate.quad(analytical_sol,x1arr[j], x2arr[j])[0]
         if(not t):
             N_init = np.array(N)
-            #print(N_init)
+
         plt.title("Pre-test of fitting $Gamma Function$",fontsize=20)
         plt.title("t="+str(t),loc='right',fontsize=14)
         plt.plot(N/normal_constant,'o-b',label="dt = 1 s")
@@ -120,14 +124,14 @@ for t in range(iteration):
         plt.plot(Nanalytical/normal_constant,'+--r',label="analytical")
         plt.ylabel("NORMALIZED NUMBER IN THE BIN",fontsize=16)
         plt.xlabel("BIN NUMBER",fontsize=16)
-        plt.yticks(np.arange(0,0.41,0.05),["0","","0.1","","0.2","","0.3","","0.4"])
-        plt.xticks(np.arange(14,30),["15","","","","","20","","","","","25","","","","","30"])
+        plt.yticks(np.arange(0,0.41,0.05),["0","","0.1","","0.2","","0.3","","0.4"]) # 3.903034
+        plt.xticks(np.arange(14,30),["15","","","","","20","","","","","25","","","","",str(round(3/(4*np.pi)*2**(29.5-25.59696)*normal_constant*1e6))])
         plt.xlim(14,num_of_bin-1)
         plt.ylim(0,0.4)
         plt.legend(fontsize=16)
         #plt.grid()
         plt.savefig("./pic/"+str(t)+".png",dpi=100)
-        #plt.show()
+        plt.show()
         plt.clf()
         print(t,"Done")
 

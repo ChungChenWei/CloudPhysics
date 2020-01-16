@@ -17,8 +17,8 @@ B  = 1e-3
 s  = -0.3
 dt = 1.
 
-print_lapse  = 50
-iteration    = 5000
+print_lapse  = 1
+iteration    = 1
 
 
 def x_growth_function(x,N,M):
